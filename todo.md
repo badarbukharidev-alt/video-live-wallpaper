@@ -21,3 +21,6 @@
 - [x] Make Favorites display every favorite item and make Explore clearly identify the active wallpaper instead of recently-added cards.
 - [x] Add an About screen with the Video Live Wallpaper description, Badar Bukhari attribution, and portfolio, YouTube, and Instagram links.
 - [x] Validate the corrected Android wallpaper flow, catalog playback, TypeScript, lint, tests, and the restarted development service.
+- [x] Fix catalog video previews so users can play videos from Explore.
+- [x] Display the official app icon above the Video Live Wallpaper title on the About screen.
+- [x] Validate preview playback fallback, About branding, tests, and the mobile development service.
