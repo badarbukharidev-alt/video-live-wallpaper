@@ -5,6 +5,7 @@ import type { StoredWallpaperVideo } from "./ExpoVideoWallpaper.types";
 export type VideoWallpaperModule = {
   isSupported(): boolean;
   storeVideoAsync(sourceUri: string, displayName?: string | null): Promise<StoredWallpaperVideo>;
+  downloadCatalogVideoAsync(streamUri: string, displayName?: string | null): Promise<StoredWallpaperVideo>;
   setActiveVideoAsync(storedUri: string, displayName?: string | null): Promise<StoredWallpaperVideo>;
   openWallpaperPreviewAsync(): Promise<{ opened: boolean }>;
   clearStoredVideoAsync(): Promise<void>;
@@ -14,6 +15,9 @@ const unsupportedModule: VideoWallpaperModule = {
   isSupported: () => false,
   storeVideoAsync: async () => {
     throw new Error("A custom Android development build is required to prepare a live wallpaper.");
+  },
+  downloadCatalogVideoAsync: async () => {
+    throw new Error("A custom Android development build is required to download a catalog wallpaper.");
   },
   setActiveVideoAsync: async () => {
     throw new Error("A custom Android development build is required to choose a live wallpaper.");

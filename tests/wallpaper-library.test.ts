@@ -1,8 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { REMOTE_WALLPAPER_CATALOG } from "../lib/wallpaper-catalog";
+
 import {
   DEFAULT_PREVIEW_PREFERENCES,
   inferWallpaperCategory,
+  loadActiveWallpaperId,
+  mergeCatalogWithLibrary,
+  saveActiveWallpaperId,
   loadPreviewPreferences,
   loadWallpaperLibrary,
   saveWallpaperLibrary,
@@ -41,5 +46,25 @@ describe("wallpaper library", () => {
     await expect(
       loadPreviewPreferences({ getItem: vi.fn().mockResolvedValue('{"muted":"yes"}'), setItem: vi.fn() }),
     ).resolves.toEqual(DEFAULT_PREVIEW_PREFERENCES);
+  });
+
+  it("keeps saved favorites when catalog metadata is refreshed", () => {
+    const catalogItem: WallpaperLibraryItem = { ...libraryItem, id: "catalog-01", uri: "https://example.com/video.m3u8", isFavorite: false, sourceKind: "catalog" };
+    const savedFavorite = { ...catalogItem, isFavorite: true, selectedAt: "2026-08-19T00:00:00.000Z" };
+
+    expect(mergeCatalogWithLibrary([catalogItem], [savedFavorite])).toEqual([savedFavorite]);
+  });
+
+  it("persists the active wallpaper identifier separately from the catalog order", async () => {
+    const getItem = vi.fn().mockResolvedValue("catalog-04");
+    const setItem = vi.fn().mockResolvedValue(undefined);
+
+    await saveActiveWallpaperId({ getItem, setItem }, "catalog-04");
+    await expect(loadActiveWallpaperId({ getItem, setItem })).resolves.toBe("catalog-04");
+  });
+
+  it("registers every supplied catalog wallpaper as a secure HLS video", () => {
+    expect(REMOTE_WALLPAPER_CATALOG).toHaveLength(9);
+    expect(REMOTE_WALLPAPER_CATALOG.every((item) => item.sourceKind === "catalog" && item.uri.startsWith("https://") && item.uri.endsWith(".m3u8"))).toBe(true);
   });
 });

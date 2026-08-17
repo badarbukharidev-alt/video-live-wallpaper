@@ -3,13 +3,16 @@ import type { WallpaperSelection } from "./wallpaper-selection";
 export const WALLPAPER_LIBRARY_STORAGE_KEY = "video-live-wallpaper.library.v1";
 export const WALLPAPER_PREVIEW_PREFERENCES_STORAGE_KEY =
   "video-live-wallpaper.preview-preferences.v1";
+export const WALLPAPER_ACTIVE_ID_STORAGE_KEY = "video-live-wallpaper.active-id.v1";
 
 export type WallpaperCategory = "Recent" | "Nature" | "Abstract" | "City" | "Calm";
+export type WallpaperSourceKind = "local" | "catalog";
 
 export type WallpaperLibraryItem = WallpaperSelection & {
   id: string;
   category: WallpaperCategory;
   isFavorite: boolean;
+  sourceKind?: WallpaperSourceKind;
 };
 
 export type PreviewPreferences = {
@@ -58,6 +61,23 @@ export function inferWallpaperCategory(name: string): WallpaperCategory {
   return "Recent";
 }
 
+export function isCatalogWallpaper(item: WallpaperLibraryItem) {
+  return item.sourceKind === "catalog" || item.uri.startsWith("https://");
+}
+
+export function mergeCatalogWithLibrary(
+  catalog: WallpaperLibraryItem[],
+  savedLibrary: WallpaperLibraryItem[],
+): WallpaperLibraryItem[] {
+  const savedById = new Map(savedLibrary.map((item) => [item.id, item]));
+  const mergedCatalog = catalog.map((item) => {
+    const saved = savedById.get(item.id);
+    return saved ? { ...item, isFavorite: saved.isFavorite, selectedAt: saved.selectedAt } : item;
+  });
+  const localItems = savedLibrary.filter((item) => !catalog.some((catalogItem) => catalogItem.id === item.id));
+  return [...localItems, ...mergedCatalog];
+}
+
 export async function loadWallpaperLibrary(store: AsyncKeyValueStore): Promise<WallpaperLibraryItem[]> {
   const raw = await store.getItem(WALLPAPER_LIBRARY_STORAGE_KEY);
   if (!raw) return [];
@@ -92,4 +112,15 @@ export async function savePreviewPreferences(
   preferences: PreviewPreferences,
 ): Promise<void> {
   await store.setItem(WALLPAPER_PREVIEW_PREFERENCES_STORAGE_KEY, JSON.stringify(preferences));
+}
+
+export async function loadActiveWallpaperId(store: AsyncKeyValueStore): Promise<string | null> {
+  return store.getItem(WALLPAPER_ACTIVE_ID_STORAGE_KEY);
+}
+
+export async function saveActiveWallpaperId(
+  store: AsyncKeyValueStore,
+  wallpaperId: string,
+): Promise<void> {
+  await store.setItem(WALLPAPER_ACTIVE_ID_STORAGE_KEY, wallpaperId);
 }

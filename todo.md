@@ -15,3 +15,9 @@
 - [x] Add wallpaper controls for favorites, video fit, muted preview, and a clearer apply-to-system flow.
 - [x] Add a polished branded splash screen for Video Live Wallpaper.
 - [x] Validate the redesigned experience with tests, TypeScript, lint, and a development-service restart.
+- [x] Restart and verify the mobile development server after the latest reported interruption.
+- [x] Diagnose and correct the “Could not prepare wallpaper” failure when applying the active video.
+- [x] Add the supplied remote video catalog with playable cards, correct portrait preview ratios, and an add-to-wallpaper workflow.
+- [x] Make Favorites display every favorite item and make Explore clearly identify the active wallpaper instead of recently-added cards.
+- [x] Add an About screen with the Video Live Wallpaper description, Badar Bukhari attribution, and portfolio, YouTube, and Instagram links.
+- [x] Validate the corrected Android wallpaper flow, catalog playback, TypeScript, lint, tests, and the restarted development service.

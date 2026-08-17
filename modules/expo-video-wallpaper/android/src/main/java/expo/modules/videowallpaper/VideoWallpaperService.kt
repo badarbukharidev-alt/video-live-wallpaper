@@ -1,15 +1,21 @@
 package expo.modules.videowallpaper
 
-import android.media.MediaPlayer
+import android.net.Uri
 import android.service.wallpaper.WallpaperService
 import android.view.SurfaceHolder
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.exoplayer.ExoPlayer
 import java.io.File
 
+@UnstableApi
 class VideoWallpaperService : WallpaperService() {
   override fun onCreateEngine(): Engine = VideoEngine()
 
   private inner class VideoEngine : Engine() {
-    private var mediaPlayer: MediaPlayer? = null
+    private var player: ExoPlayer? = null
     private var surfaceHolder: SurfaceHolder? = null
     private var visible = false
 
@@ -18,7 +24,7 @@ class VideoWallpaperService : WallpaperService() {
       if (isVisible) {
         startIfReady()
       } else {
-        mediaPlayer?.pause()
+        player?.pause()
       }
     }
 
@@ -31,7 +37,7 @@ class VideoWallpaperService : WallpaperService() {
     override fun onSurfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
       super.onSurfaceChanged(holder, format, width, height)
       surfaceHolder = holder
-      mediaPlayer?.setDisplay(holder)
+      player?.setVideoSurfaceHolder(holder)
     }
 
     override fun onSurfaceDestroyed(holder: SurfaceHolder) {
@@ -50,38 +56,39 @@ class VideoWallpaperService : WallpaperService() {
       val videoPath = getSharedPreferences(PREFERENCES, MODE_PRIVATE)
         .getString(KEY_VIDEO_PATH, null)
         ?: return
-      val videoFile = File(videoPath)
-      if (!videoFile.exists()) return
+      val requestedUri = Uri.parse(videoPath)
+      val isRemote = requestedUri.scheme == "https" || requestedUri.scheme == "http"
+      if (!isRemote && !File(videoPath).exists()) return
+      val sourceUri = if (isRemote) requestedUri else Uri.fromFile(File(videoPath))
 
-      mediaPlayer = MediaPlayer().apply {
-        setDisplay(holder)
-        setDataSource(videoFile.absolutePath)
-        isLooping = true
-        setVolume(0f, 0f)
-        setOnPreparedListener { startIfReady() }
-        setOnErrorListener { _, _, _ ->
-          releasePlayer()
-          true
-        }
-        prepareAsync()
+      val builder = ExoPlayer.Builder(this@VideoWallpaperService)
+      if (isRemote) {
+        builder.setMediaSourceFactory(
+          DefaultMediaSourceFactory(this@VideoWallpaperService)
+            .setDataSourceFactory(VideoCatalogDownloadStore.cacheDataSourceFactory(this@VideoWallpaperService)),
+        )
+      }
+      player = builder.build().apply {
+        setVideoSurfaceHolder(holder)
+        repeatMode = Player.REPEAT_MODE_ONE
+        volume = 0f
+        setMediaItem(MediaItem.fromUri(sourceUri))
+        playWhenReady = visible
+        prepare()
       }
     }
 
     private fun startIfReady() {
       if (!visible) return
-      val player = mediaPlayer ?: return
+      val player = player ?: return
       if (!player.isPlaying) {
         runCatching { player.start() }
       }
     }
 
     private fun releasePlayer() {
-      mediaPlayer?.runCatching {
-        stop()
-        reset()
-        release()
-      }
-      mediaPlayer = null
+      player?.release()
+      player = null
     }
   }
 

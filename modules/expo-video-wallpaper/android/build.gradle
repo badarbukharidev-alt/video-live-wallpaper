@@ -41,3 +41,11 @@ android {
     abortOnError false
   }
 }
+
+dependencies {
+  def media3Version = "1.8.0"
+  implementation "androidx.media3:media3-database:${media3Version}"
+  implementation "androidx.media3:media3-datasource:${media3Version}"
+  implementation "androidx.media3:media3-exoplayer:${media3Version}"
+  implementation "androidx.media3:media3-exoplayer-hls:${media3Version}"
+}
