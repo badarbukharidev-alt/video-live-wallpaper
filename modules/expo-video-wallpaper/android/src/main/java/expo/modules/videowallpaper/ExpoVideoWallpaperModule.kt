@@ -21,7 +21,11 @@ class ExpoVideoWallpaperModule : Module() {
 
     AsyncFunction("storeVideoAsync") { sourceUri: String, displayName: String? ->
       val context = requireContext()
-      val destination = File(context.filesDir, "live_wallpaper/selected_video.mp4")
+      val resolvedName = displayName?.ifBlank { null } ?: "Selected video"
+      val extension = resolvedName.substringAfterLast('.', "mp4").lowercase()
+        .replace(Regex("[^a-z0-9]"), "")
+        .ifBlank { "mp4" }
+      val destination = File(context.filesDir, "live_wallpaper/wallpaper_${System.currentTimeMillis()}.$extension")
       destination.parentFile?.mkdirs()
 
       openSource(context, Uri.parse(sourceUri)).use { input ->
@@ -30,14 +34,21 @@ class ExpoVideoWallpaperModule : Module() {
         }
       }
 
-      val resolvedName = displayName?.ifBlank { null } ?: "Selected video"
-      context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
-        .edit()
-        .putString(KEY_VIDEO_PATH, destination.absolutePath)
-        .putString(KEY_VIDEO_NAME, resolvedName)
-        .apply()
+      saveActiveVideo(context, destination, resolvedName)
 
       mapOf("uri" to Uri.fromFile(destination).toString(), "name" to resolvedName)
+    }
+
+    AsyncFunction("setActiveVideoAsync") { storedUri: String, displayName: String? ->
+      val context = requireContext()
+      val file = File(requireNotNull(Uri.parse(storedUri).path) { "Invalid stored video URI." })
+      val libraryDirectory = File(context.filesDir, "live_wallpaper").canonicalPath
+      check(file.exists() && file.canonicalPath.startsWith(libraryDirectory)) {
+        "The saved wallpaper video is no longer available."
+      }
+      val resolvedName = displayName?.ifBlank { null } ?: "Selected video"
+      saveActiveVideo(context, file, resolvedName)
+      mapOf("uri" to Uri.fromFile(file).toString(), "name" to resolvedName)
     }
 
     AsyncFunction("openWallpaperPreviewAsync") {
@@ -60,8 +71,7 @@ class ExpoVideoWallpaperModule : Module() {
 
     AsyncFunction("clearStoredVideoAsync") {
       val context = requireContext()
-      val selection = File(context.filesDir, "live_wallpaper/selected_video.mp4")
-      if (selection.exists()) selection.delete()
+      File(context.filesDir, "live_wallpaper").deleteRecursively()
       context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
         .edit()
         .clear()
@@ -81,6 +91,14 @@ class ExpoVideoWallpaperModule : Module() {
       context.contentResolver.openInputStream(uri)
         ?: throw IllegalArgumentException("The selected video can no longer be read.")
     }
+  }
+
+  private fun saveActiveVideo(context: Context, file: File, name: String) {
+    context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+      .edit()
+      .putString(KEY_VIDEO_PATH, file.absolutePath)
+      .putString(KEY_VIDEO_NAME, name)
+      .apply()
   }
 
   private companion object {

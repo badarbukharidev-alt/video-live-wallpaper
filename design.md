@@ -35,3 +35,16 @@ The visual language uses a deep night base to make video previews feel immersive
 ## Interaction Principles
 
 The app uses one decisive action per screen. Presses receive subtle opacity and haptic feedback. Video previews autoplay silently and loop, but no playback controls obstruct the visual. A short status label explains whether a video is selected, copied for wallpaper use, or waiting for the Android confirmation screen.
+
+## Reference-Inspired Redesign
+
+The revised direction borrows the **bright editorial gallery rhythm** of the supplied references rather than copying their branding. The interface will use an off-white canvas, cobalt-blue accent, rounded image-led cards, compact filter pills, and a soft bottom dock. A large **Wall of the day** card will anchor the Home screen and make the currently selected video feel like a premium featured wallpaper.
+
+| Area | Updated experience |
+|---|---|
+| Home | A light, gallery-like browse screen with a featured hero card, category chips, a search-styled video selector, and a compact “your selection” card. |
+| Detail sheet | Tapping the selected wallpaper opens a focused portrait detail surface with title, creator-style metadata, favorite toggle, fit control, mute control, and one clear apply action. |
+| Favorites | A local-only favorites section exposes saved selections without requiring an account or cloud connection. |
+| Splash screen | A clean off-white launch canvas with the blue-indigo Video Live Wallpaper symbol, a small “MAKE YOUR SCREEN MOVE” line, and a restrained loading mark. |
+
+The first version will treat categories as **presentation and filtering aids** for the user’s own local video library: Nature, Abstract, City, and Calm. It will not imply downloadable online wallpapers or fabricate a remote catalog. The favorites, fit, and mute preferences will remain local to the device and directly influence the app experience; video audio stays muted in the native live-wallpaper service for battery- and context-friendly behaviour.

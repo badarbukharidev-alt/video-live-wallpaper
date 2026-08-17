@@ -17,7 +17,7 @@ const timestamp = bundleId.split(".").pop()?.replace(/^t/, "") ?? "";
 const env = {
   appName: "Video Live Wallpaper",
   appSlug: "video-live-wallpaper",
-  logoUrl: "/manus-storage/video-live-wallpaper-icon_74bf77d5.png",
+  logoUrl: "/manus-storage/video-live-wallpaper-splash_8ef9c2bb.png",
   scheme: `manus${timestamp}`,
   androidPackage: bundleId,
 };
@@ -29,11 +29,11 @@ const config: ExpoConfig = {
   orientation: "portrait",
   icon: "./assets/images/icon.png",
   scheme: env.scheme,
-  userInterfaceStyle: "dark",
+  userInterfaceStyle: "light",
   newArchEnabled: true,
   android: {
     adaptiveIcon: {
-      backgroundColor: "#07121F",
+      backgroundColor: "#F7F7FB",
       foregroundImage: "./assets/images/android-icon-foreground.png",
       backgroundImage: "./assets/images/android-icon-background.png",
       monochromeImage: "./assets/images/android-icon-monochrome.png",
@@ -63,7 +63,7 @@ const config: ExpoConfig = {
         image: "./assets/images/splash-icon.png",
         imageWidth: 200,
         resizeMode: "contain",
-        backgroundColor: "#07121F",
+        backgroundColor: "#F7F7FB",
       },
     ],
     [
@@ -83,4 +83,3 @@ const config: ExpoConfig = {
 };
 
 export default config;
-
