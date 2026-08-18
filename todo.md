@@ -65,3 +65,10 @@ The oversized repetitive checklist generated during the interrupted session is p
 - [x] Correct errors ready build.
 - [ ] Checkpoint pending.
 - [ ] Final report pending.
+
+
+## Current preview repair
+
+- [x] Inspect why the managed preview remains on the preparation fallback page.
+- [x] Correct the preview server/export serving path so the actual Explore app shell is served.
+- [x] Verify the preview shows Explore markup and save a checkpoint.
