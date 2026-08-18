@@ -68,6 +68,16 @@ function errorMessage(error: unknown) {
   return error instanceof Error && error.message ? error.message : "The Android wallpaper service could not open this video.";
 }
 
+function previewVideoSource(uri: string) {
+  return {
+    uri,
+    contentType: uri.toLowerCase().includes(".m3u8") ? "hls" : "auto",
+    // Catalog HLS downloads are cached by the native wallpaper module. Keeping the
+    // UI player uncached avoids a second cache layer rejecting stream manifests.
+    useCaching: false,
+  } as const;
+}
+
 export default function WallpaperHomeScreen() {
   const [selection, setSelection] = useState<WallpaperSelection | null>(null);
   const [library, setLibrary] = useState<WallpaperLibraryItem[]>([]);
@@ -80,7 +90,12 @@ export default function WallpaperHomeScreen() {
   const [operation, setOperation] = useState<"selecting" | "applying" | "downloading" | null>(null);
   const [heroHasFrame, setHeroHasFrame] = useState(false);
 
-  const player = useVideoPlayer(selection?.uri ?? REMOTE_WALLPAPER_CATALOG[0].uri, (videoPlayer) => {
+  const heroSource = useMemo(
+    () => previewVideoSource(selection?.uri ?? REMOTE_WALLPAPER_CATALOG[0].uri),
+    [selection?.uri],
+  );
+
+  const player = useVideoPlayer(heroSource, (videoPlayer) => {
     videoPlayer.loop = true;
     videoPlayer.muted = true;
     videoPlayer.play();
@@ -292,7 +307,8 @@ export default function WallpaperHomeScreen() {
 }
 
 function FocusedVideoPlayer({ contentFit, uri }: { contentFit: "cover" | "contain"; uri: string }) {
-  const player = useVideoPlayer({ uri, useCaching: true }, (videoPlayer) => {
+  const source = useMemo(() => previewVideoSource(uri), [uri]);
+  const player = useVideoPlayer(source, (videoPlayer) => {
     videoPlayer.loop = true;
     videoPlayer.muted = true;
     videoPlayer.play();
@@ -300,11 +316,17 @@ function FocusedVideoPlayer({ contentFit, uri }: { contentFit: "cover" | "contai
   const { error, status } = useEvent(player, "statusChange", { status: player.status });
   const [hasFrame, setHasFrame] = useState(false);
 
+  const retryPreview = useCallback(() => {
+    void player.replaceAsync(source)
+      .then(() => player.play())
+      .catch(() => undefined);
+  }, [player, source]);
+
   useEffect(() => {
     setHasFrame(false);
   }, [uri]);
 
-  return <View style={styles.focusedPreview}>{status === "error" ? <View style={styles.previewMessage}><MaterialIcons color="#E35B68" name="error-outline" size={22} /><Text style={styles.previewMessageTitle}>Preview unavailable</Text><Text style={styles.previewMessageText}>{error?.message ?? "This stream could not be loaded. Try another catalog video or a video from your device."}</Text></View> : null}<VideoView allowsFullscreen contentFit={contentFit} nativeControls onFirstFrameRender={() => setHasFrame(true)} player={player} style={styles.focusedVideo} surfaceType="textureView" useExoShutter={false} />{status === "loading" && !hasFrame ? <View style={styles.previewLoading}><ActivityIndicator color="#FFFFFF" /><Text style={styles.previewLoadingText}>Loading preview…</Text></View> : null}</View>;
+  return <View style={styles.focusedPreview}>{status === "error" ? <Pressable onPress={retryPreview} style={styles.previewMessage}><MaterialIcons color="#E35B68" name="error-outline" size={22} /><Text style={styles.previewMessageTitle}>Tap to retry preview</Text><Text style={styles.previewMessageText}>{error?.message ?? "The connection was interrupted. Tap here to load this video again."}</Text></Pressable> : null}<VideoView allowsFullscreen contentFit={contentFit} nativeControls onFirstFrameRender={() => setHasFrame(true)} player={player} style={styles.focusedVideo} surfaceType="textureView" useExoShutter={false} />{status === "loading" && !hasFrame ? <View style={styles.previewLoading}><ActivityIndicator color="#FFFFFF" /><Text style={styles.previewLoadingText}>Loading preview…</Text></View> : null}</View>;
 }
 
 function catalogColor(id: string) {

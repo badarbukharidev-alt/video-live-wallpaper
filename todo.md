@@ -29,3 +29,5 @@
 - [x] Correct the native Android/Gradle configuration causing the build failure.
 - [x] Validate the repaired source path, automated app checks, and restarted mobile service.
 - [ ] Confirm a new hosted Android release build compiles the repaired Kotlin source; the local sandbox lacks an Android SDK.
+- [x] Fix the selected wallpaper preview so it plays catalog and device videos instead of showing Preview unavailable.
+- [x] Validate repaired preview playback source configuration, TypeScript, tests, and the mobile development service.
