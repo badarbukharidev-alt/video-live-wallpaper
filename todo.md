@@ -31,3 +31,6 @@
 - [ ] Confirm a new hosted Android release build compiles the repaired Kotlin source; the local sandbox lacks an Android SDK.
 - [x] Fix the selected wallpaper preview so it plays catalog and device videos instead of showing Preview unavailable.
 - [x] Validate repaired preview playback source configuration, TypeScript, tests, and the mobile development service.
+- [x] Add clear safe-source indicators and a device-video fallback when a remote catalog stream cannot play in-app.
+- [x] Prioritize user-owned device videos for dependable preview and live-wallpaper application without request-header spoofing.
+- [x] Validate the compliant playback interface, automated checks, and mobile development service.
