@@ -82,7 +82,7 @@ class VideoWallpaperService : WallpaperService() {
       if (!visible) return
       val player = player ?: return
       if (!player.isPlaying) {
-        runCatching { player.start() }
+        player.play()
       }
     }
 

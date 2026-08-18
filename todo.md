@@ -24,3 +24,8 @@
 - [x] Fix catalog video previews so users can play videos from Explore.
 - [x] Display the official app icon above the Video Live Wallpaper title on the About screen.
 - [x] Validate preview playback fallback, About branding, tests, and the mobile development service.
+- [x] Restart and verify the mobile development server after the newest reported interruption.
+- [x] Diagnose the published Android Gradle build failure from the Run gradlew phase.
+- [x] Correct the native Android/Gradle configuration causing the build failure.
+- [x] Validate the repaired source path, automated app checks, and restarted mobile service.
+- [ ] Confirm a new hosted Android release build compiles the repaired Kotlin source; the local sandbox lacks an Android SDK.
