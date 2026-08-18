@@ -34,3 +34,11 @@
 - [x] Add clear safe-source indicators and a device-video fallback when a remote catalog stream cannot play in-app.
 - [x] Prioritize user-owned device videos for dependable preview and live-wallpaper application without request-header spoofing.
 - [x] Validate the compliant playback interface, automated checks, and mobile development service.
+- [x] Restart and verify the mobile development server after the latest reported interruption.
+- [x] Restart and verify the mobile development server after the repeated reported interruption.
+- [x] Restart and verify the mobile development server after the newest reported interruption.
+- [x] Diagnose and correct the managed preview so it renders the intended Explore screen.
+- [x] Verify the refreshed app preview and mobile development service.
+- [x] Stabilize the managed preview process by preventing a clean Metro exit from terminating the service group.
+- [x] Replace the transient Metro preview command with a low-worker exported web preview server.
+- [x] Persist the exported preview outside Expo’s cache directory so the static server can resolve its app shell.
