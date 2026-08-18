@@ -46,9 +46,9 @@ class ExpoVideoWallpaperModule : Module() {
         "Catalog videos must use a secure network URL."
       }
       val resolvedName = displayName?.ifBlank { null } ?: "Catalog wallpaper"
-      VideoCatalogDownloadStore.enqueue(context, streamUri)
+      VideoCatalogDownloadStore.downloadAndAwait(context, streamUri)
       saveActiveSource(context, streamUri, resolvedName)
-      mapOf("uri" to streamUri, "name" to resolvedName)
+      mapOf("uri" to streamUri, "name" to resolvedName, "isDownloaded" to true)
     }
 
     AsyncFunction("setActiveVideoAsync") { storedUri: String, displayName: String? ->

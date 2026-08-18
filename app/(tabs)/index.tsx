@@ -113,7 +113,7 @@ export default function WallpaperHomeScreen() {
   const cardItems = useMemo(() => {
     if (activeTab === "Favorites") return library.filter((item) => item.isFavorite);
     const filtered = library.filter((item) => isMatchingFilter(item, activeFilter));
-    if (activeTab === "Library") return filtered.filter((item) => !isCatalogWallpaper(item));
+    if (activeTab === "Library") return filtered.filter((item) => item.sourceKind === "local" || item.isDownloaded);
     return filtered.filter(isCatalogWallpaper);
   }, [activeFilter, activeTab, library]);
 
@@ -213,17 +213,46 @@ export default function WallpaperHomeScreen() {
     if (Platform.OS !== "web") void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }, [library, persistLibrary]);
 
+  const downloadCatalogItem = useCallback(async () => {
+    if (!selectedItem || !selection || selectedItem.sourceKind !== "catalog") return;
+    if (!canApplyWallpaper) {
+      Alert.alert("Android development build required", "Rebuild and install the Android development build to download a catalog video into the app.");
+      return;
+    }
+    setOperation("downloading");
+    try {
+      const stored = await ExpoVideoWallpaperModule.downloadCatalogVideoAsync(selection.uri, selection.name);
+      const downloadedItem: WallpaperLibraryItem = {
+        ...selectedItem,
+        uri: stored.uri,
+        name: stored.name,
+        downloadedAt: new Date().toISOString(),
+        isDownloaded: true,
+      };
+      const nextLibrary = library.map((item) => item.id === downloadedItem.id ? downloadedItem : item);
+      await Promise.all([persistLibrary(nextLibrary), persistSelection(downloadedItem)]);
+      setActiveTab("Library");
+      if (Platform.OS !== "web") void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Alert.alert("Video added to Library", "The catalog video has finished downloading into the app’s private offline cache. You can now set it as a live wallpaper.");
+    } catch (error) {
+      Alert.alert("Download unavailable", errorMessage(error));
+    } finally {
+      setOperation(null);
+    }
+  }, [canApplyWallpaper, library, persistLibrary, persistSelection, selectedItem, selection]);
+
   const applyWallpaper = useCallback(async () => {
     if (!selectedItem || !selection) return;
     if (!canApplyWallpaper) {
       Alert.alert("Android development build required", "Rebuild and install the Android development build to activate the native live wallpaper service.");
       return;
     }
-    setOperation(selectedItem.sourceKind === "catalog" ? "downloading" : "applying");
+    if (selectedItem.sourceKind === "catalog" && !selectedItem.isDownloaded) {
+      Alert.alert("Download the video first", "Add this catalog video to your Library first. The app waits for the offline download to finish before Android can use it as a wallpaper.");
+      return;
+    }
+    setOperation("applying");
     try {
-      if (selectedItem.sourceKind === "catalog") {
-        await ExpoVideoWallpaperModule.downloadCatalogVideoAsync(selection.uri, selection.name);
-      }
       await ExpoVideoWallpaperModule.setActiveVideoAsync(selection.uri, selection.name);
       await ExpoVideoWallpaperModule.openWallpaperPreviewAsync();
       await saveActiveWallpaperId(AsyncStorage, selectedItem.id);
@@ -246,13 +275,13 @@ export default function WallpaperHomeScreen() {
 
   const renderWallpaperCard = useCallback(({ item }: { item: WallpaperLibraryItem }) => (
     <Pressable onPress={() => void openItem(item)} style={({ pressed }) => [styles.wallpaperCard, pressed && styles.pressed]}>
-      <View style={styles.cardPreview}>
-        <View style={[styles.cardPoster, { backgroundColor: catalogColor(item.id) }]}>{isCatalogWallpaper(item) && CATALOG_POSTERS[item.id as keyof typeof CATALOG_POSTERS] ? <Image source={CATALOG_POSTERS[item.id as keyof typeof CATALOG_POSTERS]} style={styles.cardPosterImage} /> : null}<View style={styles.cardPosterOverlay}><MaterialIcons color="rgba(255,255,255,0.92)" name={isCatalogWallpaper(item) ? "play-circle-outline" : "movie-filter"} size={36} /><Text style={styles.cardPosterLabel}>{isCatalogWallpaper(item) ? "Tap to preview" : "Device video"}</Text></View></View>
+        <View style={styles.cardPreview}>
+        <View style={[styles.cardPoster, { backgroundColor: catalogColor(item.id) }]}>{isCatalogWallpaper(item) && CATALOG_POSTERS[item.id as keyof typeof CATALOG_POSTERS] ? <Image source={CATALOG_POSTERS[item.id as keyof typeof CATALOG_POSTERS]} style={styles.cardPosterImage} /> : null}<View style={styles.cardPosterOverlay}><MaterialIcons color="rgba(255,255,255,0.92)" name={isCatalogWallpaper(item) ? "play-circle-outline" : "movie-filter"} size={36} /><Text style={styles.cardPosterLabel}>{item.isDownloaded ? "Downloaded" : isCatalogWallpaper(item) ? "Tap to preview" : "Device video"}</Text></View></View>
         {item.id === activeId ? <View style={styles.activePill}><View style={styles.activeDot} /><Text style={styles.activePillText}>ACTIVE</Text></View> : null}
         <View style={styles.cardPlay}><MaterialIcons color="#FFFFFF" name="play-arrow" size={19} /></View>
       </View>
       <View style={styles.cardFooter}>
-        <View style={styles.cardText}><Text numberOfLines={1} style={styles.cardTitle}>{item.name}</Text><Text style={styles.cardMeta}>{item.sourceKind === "catalog" ? "Catalog video" : "Device video"}</Text></View>
+        <View style={styles.cardText}><Text numberOfLines={1} style={styles.cardTitle}>{item.name}</Text><Text style={styles.cardMeta}>{item.sourceKind === "catalog" ? item.isDownloaded ? "Downloaded · offline-ready" : "Catalog · download first" : "Device video"}</Text></View>
         <Pressable hitSlop={8} onPress={() => void toggleFavorite(item)} style={styles.cardHeart}>
           <MaterialIcons color={item.isFavorite ? "#E34B59" : "#797E91"} name={item.isFavorite ? "favorite" : "favorite-border"} size={20} />
         </Pressable>
@@ -298,9 +327,9 @@ export default function WallpaperHomeScreen() {
       <Modal animationType="slide" onRequestClose={() => setIsDetailOpen(false)} transparent visible={isDetailOpen}>
         <View style={styles.modalBackdrop}><Pressable onPress={() => setIsDetailOpen(false)} style={StyleSheet.absoluteFill} /><View style={styles.detailSheet}><View style={styles.sheetHandle} /><View style={styles.detailHeader}><View style={styles.detailThumb}><MaterialIcons color="#3657D7" name={selectedItem?.sourceKind === "catalog" ? "cloud-download" : "movie-filter"} size={26} /></View><View style={styles.detailHeaderCopy}><Text numberOfLines={1} style={styles.detailTitle}>{selectedItem?.name ?? "Choose a video"}</Text><Text style={styles.detailSubtitle}>{selectedItem?.sourceKind === "catalog" ? "Catalog preview · Streams to Android" : "Saved device video · Offline ready"}</Text></View>{selectedItem ? <Pressable onPress={() => void toggleFavorite(selectedItem)} style={styles.iconButton}><MaterialIcons color={selectedItem.isFavorite ? "#E34B59" : "#3D4259"} name={selectedItem.isFavorite ? "favorite" : "favorite-border"} size={24} /></Pressable> : null}</View>
           {selectedItem ? <FocusedVideoPlayer contentFit={preferences.fitMode} onChooseDeviceVideo={() => void chooseVideo()} sourceKind={selectedItem.sourceKind} uri={selectedItem.uri} /> : null}
-          {selectedItem?.sourceKind === "catalog" ? <View style={styles.sourceNotice}><MaterialIcons color="#3657D7" name="verified-user" size={18} /><View style={styles.sourceNoticeCopy}><Text style={styles.sourceNoticeTitle}>Catalog availability can vary</Text><Text style={styles.sourceNoticeText}>This preview uses the provider’s standard stream. If it cannot play, choose a video from your device instead.</Text></View></View> : <View style={styles.localNotice}><MaterialIcons color="#1C9A6C" name="check-circle" size={18} /><Text style={styles.localNoticeText}>Private device video · ready for dependable wallpaper playback</Text></View>}
+          {selectedItem?.sourceKind === "catalog" ? <View style={styles.sourceNotice}><MaterialIcons color="#3657D7" name={selectedItem.isDownloaded ? "download-done" : "cloud-download"} size={18} /><View style={styles.sourceNoticeCopy}><Text style={styles.sourceNoticeTitle}>{selectedItem.isDownloaded ? "Downloaded into your Library" : "Download before adding"}</Text><Text style={styles.sourceNoticeText}>{selectedItem.isDownloaded ? "This catalog video is ready in the app’s private offline cache. You can now continue to Android’s live-wallpaper confirmation." : "Catalog previews use the provider’s standard stream. Add the video to your Library first; the app waits for the download to finish before it can be applied."}</Text></View></View> : <View style={styles.localNotice}><MaterialIcons color="#1C9A6C" name="check-circle" size={18} /><Text style={styles.localNoticeText}>Private device video · ready for dependable wallpaper playback</Text></View>}
           <View style={styles.settingsBlock}><Text style={styles.settingsLabel}>PREVIEW SETTINGS</Text><View style={styles.settingRow}><View><Text style={styles.settingTitle}>Video fit</Text><Text style={styles.settingText}>Fill the phone screen or keep the full frame.</Text></View><View style={styles.segmentedControl}>{(["cover", "contain"] as const).map((fitMode) => <Pressable key={fitMode} onPress={() => void updatePreferences({ ...preferences, fitMode })} style={[styles.segment, preferences.fitMode === fitMode && styles.segmentActive]}><Text style={[styles.segmentText, preferences.fitMode === fitMode && styles.segmentTextActive]}>{fitMode === "cover" ? "Fill" : "Fit"}</Text></Pressable>)}</View></View><View style={[styles.settingRow, styles.settingRowBorder]}><View><Text style={styles.settingTitle}>Mute preview</Text><Text style={styles.settingText}>Live wallpaper audio always stays muted.</Text></View><Switch onValueChange={(muted) => void updatePreferences({ ...preferences, muted })} thumbColor="#FFFFFF" trackColor={{ false: "#C7CAD6", true: "#3657D7" }} value={preferences.muted} /></View></View>
-          <Pressable disabled={!selectedItem || !isReady || operation !== null} onPress={() => void applyWallpaper()} style={({ pressed }) => [styles.applyButton, (!selectedItem || !isReady || operation !== null) && styles.applyButtonDisabled, pressed && styles.pressed]}>{operation === "applying" || operation === "downloading" ? <ActivityIndicator color="#FFFFFF" /> : <MaterialIcons color="#FFFFFF" name="wallpaper" size={21} />}<Text style={styles.applyButtonText}>{selectedItem?.sourceKind === "catalog" ? "Download & set wallpaper" : "Set live wallpaper"}</Text></Pressable><Text style={styles.systemNote}>{selectedItem?.sourceKind === "catalog" ? "Catalog video caches on-device while Android opens the final confirmation." : "Android opens its final confirmation screen next."}</Text>
+          <Pressable disabled={!selectedItem || !isReady || operation !== null} onPress={() => void (selectedItem?.sourceKind === "catalog" && !selectedItem.isDownloaded ? downloadCatalogItem() : applyWallpaper())} style={({ pressed }) => [styles.applyButton, (!selectedItem || !isReady || operation !== null) && styles.applyButtonDisabled, pressed && styles.pressed]}>{operation === "applying" || operation === "downloading" ? <ActivityIndicator color="#FFFFFF" /> : <MaterialIcons color="#FFFFFF" name={selectedItem?.sourceKind === "catalog" && !selectedItem.isDownloaded ? "download" : "wallpaper"} size={21} />}<Text style={styles.applyButtonText}>{selectedItem?.sourceKind === "catalog" && !selectedItem.isDownloaded ? "Download video & add to Library" : "Set live wallpaper"}</Text></Pressable><Text style={styles.systemNote}>{selectedItem?.sourceKind === "catalog" && !selectedItem.isDownloaded ? "The video must finish downloading into the app before it can be applied." : "Android opens its final confirmation screen next."}</Text>
         </View></View>
       </Modal>
     </ScreenContainer>

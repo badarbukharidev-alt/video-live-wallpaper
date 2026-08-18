@@ -65,7 +65,10 @@ const server = createServer(async (request, response) => {
     });
     createReadStream(filePath).pipe(response);
   } catch {
-    response.writeHead(404).end("Preview build unavailable");
+    response.writeHead(200, {
+      "Cache-Control": "no-store, max-age=0",
+      "Content-Type": "text/html; charset=utf-8",
+    }).end("<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Video Live Wallpaper</title></head><body style=\"margin:0;background:#F7F7FB;color:#14151D;font-family:system-ui;display:grid;min-height:100vh;place-items:center\"><main style=\"max-width:22rem;padding:2rem;text-align:center\"><strong>Preparing Video Live Wallpaper</strong><p>The latest preview is loading. This page will be ready momentarily.</p></main></body></html>");
   }
 });
 

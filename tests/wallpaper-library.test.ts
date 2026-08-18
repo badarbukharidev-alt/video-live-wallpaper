@@ -48,9 +48,15 @@ describe("wallpaper library", () => {
     ).resolves.toEqual(DEFAULT_PREVIEW_PREFERENCES);
   });
 
-  it("keeps saved favorites when catalog metadata is refreshed", () => {
+  it("keeps saved favorites and completed catalog downloads when catalog metadata is refreshed", () => {
     const catalogItem: WallpaperLibraryItem = { ...libraryItem, id: "catalog-01", uri: "https://example.com/video.m3u8", isFavorite: false, sourceKind: "catalog" };
-    const savedFavorite = { ...catalogItem, isFavorite: true, selectedAt: "2026-08-19T00:00:00.000Z" };
+    const savedFavorite = {
+      ...catalogItem,
+      downloadedAt: "2026-08-19T00:01:00.000Z",
+      isDownloaded: true,
+      isFavorite: true,
+      selectedAt: "2026-08-19T00:00:00.000Z",
+    };
 
     expect(mergeCatalogWithLibrary([catalogItem], [savedFavorite])).toEqual([savedFavorite]);
   });

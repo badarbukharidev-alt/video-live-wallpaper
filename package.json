@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "concurrently --kill-others-on-fail \"pnpm dev:server\" \"pnpm dev:preview\"",
     "dev:server": "cross-env NODE_ENV=development tsx watch server/_core/index.ts",
-    "dev:preview": "cross-env EXPO_USE_METRO_WORKSPACE_ROOT=1 npx expo export --platform web --no-minify --max-workers 2 --output-dir web-build && node scripts/serve-web-build.mjs",
+    "dev:preview": "concurrently --raw \"node scripts/serve-web-build.mjs\" \"pnpm preview:build\"",
+    "preview:build": "cross-env EXPO_USE_METRO_WORKSPACE_ROOT=1 npx expo export --platform web --no-minify --max-workers 2 --output-dir web-build",
     "build": "esbuild server/_core/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "start": "NODE_ENV=production node dist/index.js",
     "check": "tsc --noEmit",

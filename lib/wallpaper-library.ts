@@ -13,6 +13,8 @@ export type WallpaperLibraryItem = WallpaperSelection & {
   category: WallpaperCategory;
   isFavorite: boolean;
   sourceKind?: WallpaperSourceKind;
+  isDownloaded?: boolean;
+  downloadedAt?: string;
 };
 
 export type PreviewPreferences = {
@@ -39,6 +41,8 @@ function isLibraryItem(value: unknown): value is WallpaperLibraryItem {
     typeof item.name === "string" &&
     typeof item.selectedAt === "string" &&
     typeof item.isFavorite === "boolean" &&
+    (item.isDownloaded === undefined || typeof item.isDownloaded === "boolean") &&
+    (item.downloadedAt === undefined || typeof item.downloadedAt === "string") &&
     ["Recent", "Nature", "Abstract", "City", "Calm"].includes(item.category ?? "")
   );
 }
@@ -72,7 +76,15 @@ export function mergeCatalogWithLibrary(
   const savedById = new Map(savedLibrary.map((item) => [item.id, item]));
   const mergedCatalog = catalog.map((item) => {
     const saved = savedById.get(item.id);
-    return saved ? { ...item, isFavorite: saved.isFavorite, selectedAt: saved.selectedAt } : item;
+    return saved
+      ? {
+          ...item,
+          downloadedAt: saved.downloadedAt,
+          isDownloaded: saved.isDownloaded,
+          isFavorite: saved.isFavorite,
+          selectedAt: saved.selectedAt,
+        }
+      : item;
   });
   const localItems = savedLibrary.filter((item) => !catalog.some((catalogItem) => catalogItem.id === item.id));
   return [...localItems, ...mergedCatalog];

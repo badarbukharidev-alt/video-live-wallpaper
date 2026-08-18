@@ -42,3 +42,9 @@
 - [x] Stabilize the managed preview process by preventing a clean Metro exit from terminating the service group.
 - [x] Replace the transient Metro preview command with a low-worker exported web preview server.
 - [x] Persist the exported preview outside Expo’s cache directory so the static server can resolve its app shell.
+- [x] Restore the managed preview connection so the Explore screen is available again.
+- [x] Require catalog videos to download into the app before they can be added or applied as live wallpapers.
+- [x] Validate the repaired preview service and download-before-apply workflow.
+- [x] Make catalog download completion an explicit native prerequisite for adding or applying a catalog wallpaper.
+- [x] Persist downloaded catalog state and show completed catalog downloads in the app Library.
+- [x] Keep a live preview server available while a refreshed web build is exported.
