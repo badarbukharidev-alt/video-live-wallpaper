@@ -39,7 +39,7 @@ class ExpoVideoWallpaperModule : Module() {
       mapOf("uri" to Uri.fromFile(destination).toString(), "name" to resolvedName)
     }
 
-    AsyncFunction("downloadCatalogVideoAsync") { streamUri: String, displayName: String? ->
+    AsyncFunction("downloadCatalogVideoAsync") Coroutine { streamUri: String, displayName: String? ->
       val context = requireContext()
       val uri = Uri.parse(streamUri)
       check(uri.scheme == "https" || uri.scheme == "http") {

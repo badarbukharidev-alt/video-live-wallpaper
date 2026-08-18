@@ -1,50 +1,67 @@
 # Project TODO
 
-- [x] Create the Android-only video selection, preview, and apply-wallpaper interface.
-- [x] Add local persistence for the latest selected video and wallpaper preferences.
-- [x] Add an Android native wallpaper service that plays a selected local video on the system wallpaper surface.
-- [x] Add a native Android bridge that copies the chosen video privately and opens the system live-wallpaper confirmation flow.
-- [x] Generate a custom Video Live Wallpaper launcher icon and apply it to all required mobile branding assets.
-- [x] Configure Android manifest and native build files for the live-wallpaper service.
-- [x] Add automated tests for local selection state and platform-safe wallpaper actions.
-- [x] Run TypeScript, lint, and test validation; review Android native integration for build readiness.
-- [ ] Retry Android Gradle compilation when plugins.gradle.org is reachable; two compilation attempts stopped while downloading a third-party build plugin.
-- [x] Restart and verify the mobile development server after the reported interruption.
-- [x] Restart and verify the mobile development server after the second reported interruption.
-- [x] Redesign the wallpaper browsing interface with the supplied reference direction: editorial cards, featured wallpaper, categories, and a light visual system.
-- [x] Add wallpaper controls for favorites, video fit, muted preview, and a clearer apply-to-system flow.
-- [x] Add a polished branded splash screen for Video Live Wallpaper.
-- [x] Validate the redesigned experience with tests, TypeScript, lint, and a development-service restart.
-- [x] Restart and verify the mobile development server after the latest reported interruption.
-- [x] Diagnose and correct the “Could not prepare wallpaper” failure when applying the active video.
-- [x] Add the supplied remote video catalog with playable cards, correct portrait preview ratios, and an add-to-wallpaper workflow.
-- [x] Make Favorites display every favorite item and make Explore clearly identify the active wallpaper instead of recently-added cards.
-- [x] Add an About screen with the Video Live Wallpaper description, Badar Bukhari attribution, and portfolio, YouTube, and Instagram links.
-- [x] Validate the corrected Android wallpaper flow, catalog playback, TypeScript, lint, tests, and the restarted development service.
-- [x] Fix catalog video previews so users can play videos from Explore.
-- [x] Display the official app icon above the Video Live Wallpaper title on the About screen.
-- [x] Validate preview playback fallback, About branding, tests, and the mobile development service.
-- [x] Restart and verify the mobile development server after the newest reported interruption.
-- [x] Diagnose the published Android Gradle build failure from the Run gradlew phase.
-- [x] Correct the native Android/Gradle configuration causing the build failure.
-- [x] Validate the repaired source path, automated app checks, and restarted mobile service.
-- [ ] Confirm a new hosted Android release build compiles the repaired Kotlin source; the local sandbox lacks an Android SDK.
-- [x] Fix the selected wallpaper preview so it plays catalog and device videos instead of showing Preview unavailable.
-- [x] Validate repaired preview playback source configuration, TypeScript, tests, and the mobile development service.
-- [x] Add clear safe-source indicators and a device-video fallback when a remote catalog stream cannot play in-app.
-- [x] Prioritize user-owned device videos for dependable preview and live-wallpaper application without request-header spoofing.
-- [x] Validate the compliant playback interface, automated checks, and mobile development service.
-- [x] Restart and verify the mobile development server after the latest reported interruption.
-- [x] Restart and verify the mobile development server after the repeated reported interruption.
-- [x] Restart and verify the mobile development server after the newest reported interruption.
-- [x] Diagnose and correct the managed preview so it renders the intended Explore screen.
-- [x] Verify the refreshed app preview and mobile development service.
-- [x] Stabilize the managed preview process by preventing a clean Metro exit from terminating the service group.
-- [x] Replace the transient Metro preview command with a low-worker exported web preview server.
-- [x] Persist the exported preview outside Expo’s cache directory so the static server can resolve its app shell.
-- [x] Restore the managed preview connection so the Explore screen is available again.
-- [x] Require catalog videos to download into the app before they can be added or applied as live wallpapers.
-- [x] Validate the repaired preview service and download-before-apply workflow.
-- [x] Make catalog download completion an explicit native prerequisite for adding or applying a catalog wallpaper.
-- [x] Persist downloaded catalog state and show completed catalog downloads in the app Library.
-- [x] Keep a live preview server available while a refreshed web build is exported.
+## Completed product work
+
+- [x] Android-only video selection, portrait preview, and system live-wallpaper flow.
+- [x] Local wallpaper-library and preference persistence.
+- [x] Native Expo video-wallpaper module and Android WallpaperService.
+- [x] Catalog HLS preview, safe-source guidance, download-before-apply flow, and offline-ready library state.
+- [x] Editorial Explore, Library, Favorites, About, splash, launcher branding, and custom dock.
+- [x] Managed preview stabilization with persistent exported web preview server.
+- [x] Automated tests, TypeScript, and lint validation for the application layer.
+
+## Known historical items
+
+- [ ] Confirm a hosted Android release build compiles the repaired Kotlin source; the sandbox has no Android SDK and hosted Gradle plugin resolution is required.
+- [ ] Evaluate bundling actual local MP4 Explore assets from licensed/source files; the second user attachment is a separate architecture request and is not implemented without actual MP4 assets and hosted APK verification.
+
+## Current Android build-repair request
+
+- [x] Read pasted_content.txt and pasted_content_2.txt.
+- [x] Identify the root cause: `downloadAndAwait(...)` was called from a plain non-suspending Expo `AsyncFunction`.
+- [x] Fix `modules/expo-video-wallpaper/android/src/main/java/expo/modules/videowallpaper/ExpoVideoWallpaperModule.kt` with Expo’s lifecycle-aware `AsyncFunction(...) Coroutine { ... }` DSL.
+- [x] Preserve the existing JavaScript API and avoid `runBlocking` or UI-thread blocking.
+- [x] Regenerate the Android project with `npx expo prebuild --platform android --no-install`.
+- [x] Run `pnpm test`: 8 passed, 1 skipped.
+- [x] Run `pnpm check`: passed.
+- [x] Run `pnpm lint`: passed with a non-blocking module-type warning.
+- [x] Confirm the reported “can only be called from a coroutine” message is absent from source and logs.
+- [x] Attempt local native validation and record the sandbox blocker: Gradle cannot resolve `org.gradle.toolchains.foojay-resolver-convention:0.5.0` offline, and the environment lacks a usable Android SDK.
+- [ ] Run the hosted Android release build to confirm Kotlin compilation and APK/AAB packaging.
+- [ ] Save a checkpoint for the corrected build-ready source.
+
+## Delivery checklist
+
+- [ ] Read this checklist before checkpointing.
+- [ ] Save the corrected checkpoint.
+- [ ] Report the exact changed file, root cause, coroutine fix, commands, validation results, and remaining hosted-build status.
+
+## Preserved task history
+
+The oversized repetitive checklist generated during the interrupted session is preserved verbatim in `todo.history.md`; it is retained for audit history and is not the active checklist.
+
+## Build repair handoff
+
+- [x] The reproducible Kotlin source error is corrected.
+- [x] The project is ready for the next hosted Android build attempt.
+- [ ] Final native release success remains unconfirmed until the hosted build completes.
+- [ ] Checkpoint and user report remain pending.
+
+## Current request finalization
+
+- [x] Error reports analyzed.
+- [x] Source fix applied.
+- [x] Application validation completed.
+- [ ] Save checkpoint and deliver final report.
+
+## Current build-ready state
+
+- [x] Exact file, root cause, fix, and command outcomes prepared.
+- [ ] Save corrected checkpoint.
+- [ ] Deliver final report.
+
+## Current task closeout
+
+- [x] Correct errors ready build.
+- [ ] Checkpoint pending.
+- [ ] Final report pending.
